@@ -1,5 +1,5 @@
 import React from "react"
-import { compose, withProps, lifecycle } from "recompose"
+import { compose, withProps, lifecycle, withState, withHandlers } from "recompose"
 import { withScriptjs, withGoogleMap, GoogleMap, Marker } from "react-google-maps"
 import _ from "lodash";
 import SearchBox from "react-google-maps/lib/components/places/SearchBox";
@@ -11,7 +11,6 @@ const MyMapComponent = compose(
         containerElement: <div style={{ height: "100vh" }} />,
         mapElement: <div style={{ height: "100%" }} />,
     }),
-    // withState('zoom', 'onZoomChange', 8),
     lifecycle({
         componentWillMount() {
             const refs = {}
@@ -25,16 +24,6 @@ const MyMapComponent = compose(
                 onMapMounted: ref => {
                     refs.map = ref;
                 },
-                onBoundsChanged: () => {
-                    this.setState({
-                        bounds: refs.map.getBounds(),
-                        center: refs.map.getCenter(),
-                    })
-                },
-                // onZoomChanged: ({ onZoomChange, onMapBoundsChange }) => () => {
-                //     onZoomChange(refs.map.getZoom());
-                //     onMapBoundsChange(refs.map.getBounds());
-                // },
                 onSearchBoxMounted: ref => {
                     refs.searchBox = ref;
                 },
@@ -58,19 +47,50 @@ const MyMapComponent = compose(
                         center: nextCenter,
                         markers: nextMarkers,
                     });
-                    refs.map.fitBounds(bounds);
+                    // refs.map.fitBounds(bounds);
                 },
             })
         },
     }),
     withScriptjs,
-    withGoogleMap
+    withGoogleMap,
+    withState('places', 'updatePlaces', ''),
+    withHandlers(() => {
+        const refs = {
+            map: undefined,
+        }
+        return {
+            onMapMounted: () => ref => {
+                refs.map = ref
+            },
+
+            fetchPlaces: ({ updatePlaces }) => () => {
+                const bounds = refs.map.getBounds();
+                const center = refs.map.getCenter();
+                const service = new window.google.maps.places.PlacesService(refs.map.context.__SECRET_MAP_DO_NOT_USE_OR_YOU_WILL_BE_FIRED);
+                const request = {
+                    // location: new window.google.maps.LatLng({ lat: center.lat(), lng: center.lng() }),
+                    bounds: bounds,
+                    // radius: '500',
+                    type: ['restaurant']
+                };
+                service.nearbySearch(request, (results, status) => {
+                    if (status == window.google.maps.places.PlacesServiceStatus.OK) {
+                        console.log(results);
+                        updatePlaces(results);
+                    }
+                })
+            }
+        }
+    }),
 )((props) =>
     <GoogleMap
+        onTilesLoaded={props.fetchPlaces}
+        onBoundsChanged={props.fetchPlaces}
         ref={props.onMapMounted}
         defaultZoom={8}
         center={props.center}
-        onBoundsChanged={props.onBoundsChanged}
+        // center={{ lat: props.currentLocation.lat, lng: props.currentLocation.lng }}
         onZoomChanged={props.onZoomChanged}
     >
         <SearchBox
@@ -97,31 +117,52 @@ const MyMapComponent = compose(
                 }}
             />
         </SearchBox>
-        {props.isMarkerShown && <Marker position={props.center} onClick={props.onMarkerClick} />}
+        {props.places && props.places.map((place, i) =>
+            <Marker key={i} position={{ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() }} />
+        )}
+        {/* {props.isMarkerShown && <Marker position={props.center} onClick={props.onMarkerClick} />} */}
     </GoogleMap >
 )
 
 class MapWrapper extends React.PureComponent {
     state = {
         isMarkerShown: false,
-        // mapPosition: {
-        //     lat: this.props.center.lat,
-        //     lng: this.props.center.lng
-        // },
-        markerPosition: {
-            lat: -34.397,
-            lng: 150.644
-        }
+        currentLatLng: {
+            lat: 0,
+            lng: 0
+        },
     }
 
     componentDidMount() {
         this.delayedShowMarker()
     }
 
+    // componentWillUpdate() {
+    //     this.getGeoLocation()
+    // }
+
     delayedShowMarker = () => {
         setTimeout(() => {
+            this.getGeoLocation();
             this.setState({ isMarkerShown: true })
         }, 3000)
+    }
+
+    getGeoLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    console.log("current position", position.coords);
+                    this.setState(prevState => ({
+                        currentLatLng: {
+                            ...prevState.currentLatLng,
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        }
+                    }))
+                }
+            )
+        }
     }
 
     handleMarkerClick = () => {
@@ -130,13 +171,13 @@ class MapWrapper extends React.PureComponent {
     }
 
     render() {
-        const { markerPosition } = this.state;
+        const { currentLatLng } = this.state;
 
         return (
             <MyMapComponent
                 isMarkerShown={this.state.isMarkerShown}
                 onMarkerClick={this.handleMarkerClick}
-                markerPosition={markerPosition}
+                currentLocation={currentLatLng}
             />
         )
     }
