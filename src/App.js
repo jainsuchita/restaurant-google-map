@@ -1,14 +1,11 @@
 import React from "react";
-import "./App.css";
 
 // Local Components
-import { Map } from "components";
+import { MapContainer } from "components";
 
 function App() {
   return (
-    <div className="App">
-      <Map />
-    </div>
+    <MapContainer />
   );
 }
 
