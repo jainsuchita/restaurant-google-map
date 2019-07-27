@@ -115,6 +115,15 @@ class MapContainer extends React.PureComponent {
         this.getGeoLocation();
     }
 
+    onMapClick = (e) => {
+        this.setState({
+            center: {
+                lat: e.latLng.lat(),
+                lng: e.latLng.lng()
+            }
+        });
+    }
+
     render() {
         const { center, onMapMounted, onBoundsChanged, places, showMarkerInfoIndex } = this.state;
 
@@ -128,6 +137,7 @@ class MapContainer extends React.PureComponent {
                 center={center}
                 onBoundsChanged={onBoundsChanged}
                 onMapMounted={onMapMounted}
+                onClick={this.onMapClick}
             >
                 <MuiDrawer>
                     <LocationSearchInput onLocationSelect={this.onLocationSelect} handleCurrentLocation={this.handleCurrentLocation} />
