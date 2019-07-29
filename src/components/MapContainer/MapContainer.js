@@ -134,7 +134,7 @@ class MapContainer extends React.PureComponent {
                 loadingElement={<div style={{ height: "100%" }} />}
                 containerElement={<div style={{ height: "100vh" }} />}
                 mapElement={<div style={{ height: "100%" }} />}
-                defaultZoom={10}
+                defaultZoom={15}
                 center={center}
                 onBoundsChanged={onBoundsChanged}
                 onMapMounted={onMapMounted}
