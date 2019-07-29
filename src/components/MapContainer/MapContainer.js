@@ -48,6 +48,8 @@ class MapContainer extends React.PureComponent {
                 });
             },
         });
+
+        console.log(refs);
     }
 
     fetchRestaurants = () => {
@@ -64,7 +66,7 @@ class MapContainer extends React.PureComponent {
                 })
             })
             .catch((err) => {
-                console.log('error')
+                console.log('error:', err);
             })
     }
 
@@ -127,7 +129,7 @@ class MapContainer extends React.PureComponent {
                 loadingElement={<div style={{ height: "100%" }} />}
                 containerElement={<div style={{ height: "100vh" }} />}
                 mapElement={<div style={{ height: "100%" }} />}
-                defaultZoom={8}
+                defaultZoom={10}
                 center={center}
                 onBoundsChanged={onBoundsChanged}
                 onMapMounted={onMapMounted}
@@ -144,7 +146,7 @@ class MapContainer extends React.PureComponent {
                             onMarkerClick={this.onToggleOpen}
                             markerInfoIndex={showMarkerInfoIndex}
                             marker={item}
-                            key={key} />
+                            index={key} />
                     })
                 }
 

@@ -5,19 +5,19 @@ import { Marker, InfoWindow } from "react-google-maps";
 import Link from '@material-ui/core/Link';
 
 // Local components
-import pinIcon from "images/pin.png";
-import pinGreen from "images/pingreen.png";
+import pinIcon from "images/pin-red.png";
+import pinGreen from "images/pin-green.png";
 
-function CustomMarker({ marker, key, onMarkerClick, markerInfoIndex }) {
+function CustomMarker({ marker, index, onMarkerClick, markerInfoIndex }) {
     return (
         <Marker
-            key={key}
+            key={index}
             position={{ lat: marker.coordinates.latitude, lng: marker.coordinates.longitude }}
-            onClick={() => onMarkerClick(key)}
+            onClick={() => onMarkerClick(index)}
             title="Click here for more details"
-            icon={{ url: markerInfoIndex !== key ? pinIcon : pinGreen, scaledSize: { width: 23, height: 32 }, }}
+            icon={{ url: markerInfoIndex !== index ? pinIcon : pinGreen, scaledSize: { width: 50, height: 50 }, }}
         >
-            {markerInfoIndex === key &&
+            {markerInfoIndex === index &&
                 <InfoWindow onCloseClick={onMarkerClick}>
                     <Link
                         target="_blank"
