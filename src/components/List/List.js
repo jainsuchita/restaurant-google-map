@@ -18,11 +18,11 @@ const useStyles = makeStyles(theme => ({
         backgroundSize: "80px 80px",
         height: 80,
         width: 80,
-        verticalAlign: "top"
+        verticalAlign: "top",
+        cursor: "pointer",
     },
     listItemClass: {
         padding: 16,
-        cursor: "pointer",
         borderBottom: "1px solid rgba(63, 81, 181, 0.08)"
     },
     text: {
@@ -57,7 +57,7 @@ const useStyles = makeStyles(theme => ({
     }
 }));
 
-function MuiList({ list, activeItem }) {
+function MuiList({ list, activeItem, onImgClick }) {
     const classes = useStyles();
 
     const getSecondaryItems = (item) => {
@@ -105,7 +105,10 @@ function MuiList({ list, activeItem }) {
                                     secondary={getSecondaryItems(item)} />
 
                                 <ListItemAvatar>
-                                    <img className={classes.imgClass} src={item.image_url} alt="restaurant_pic" />
+                                    <img onClick={() => onImgClick(index)}
+                                        className={classes.imgClass}
+                                        src={item.image_url}
+                                        alt="restaurant_pic" />
                                 </ListItemAvatar>
                             </ListItem>
                         )

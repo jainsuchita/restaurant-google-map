@@ -1,6 +1,6 @@
 import React from "react"
 import axios from "axios";
-
+import { Marker } from "react-google-maps";
 import { geocodeByAddress, getLatLng } from "react-places-autocomplete";
 
 // Local components
@@ -29,9 +29,6 @@ class MapContainer extends React.PureComponent {
             center: {
                 lat: 41.9, lng: -87.624
             },
-            onSearchBoxMounted: ref => {
-                refs.searchBox = ref;
-            },
             onMapMounted: map => {
                 refs.map = map;
             },
@@ -46,10 +43,10 @@ class MapContainer extends React.PureComponent {
                         lng: center.lng()
                     }
                 });
+                // refs.map.fitBounds(bounds);
+                // refs.map.panToBounds(bounds);
             },
         });
-
-        console.log(refs);
     }
 
     fetchRestaurants = () => {
@@ -61,6 +58,7 @@ class MapContainer extends React.PureComponent {
             })
             .then((res) => {
                 let restaurants = res.data.businesses;
+                console.log(restaurants)
                 this.setState({
                     places: restaurants
                 })
@@ -79,7 +77,7 @@ class MapContainer extends React.PureComponent {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         }
-                    }))
+                    }), () => this.fetchRestaurants())
                 }
             )
         }
@@ -93,7 +91,8 @@ class MapContainer extends React.PureComponent {
                     center: {
                         lat: position.lat,
                         lng: position.lng
-                    }
+                    },
+                    showMarkerInfoIndex: -1
                 });
                 this.fetchRestaurants();
             })
@@ -120,6 +119,12 @@ class MapContainer extends React.PureComponent {
         this.fetchRestaurants();
     }
 
+    highlightMarker = (index) => {
+        this.setState({
+            showMarkerInfoIndex: index
+        })
+    }
+
     render() {
         const { center, onMapMounted, onBoundsChanged, places, showMarkerInfoIndex } = this.state;
 
@@ -137,12 +142,13 @@ class MapContainer extends React.PureComponent {
             >
                 <Sidebar>
                     <LocationSearchInput onLocationSelect={this.onLocationSelect} handleCurrentLocation={this.handleCurrentLocation} />
-                    <List list={places} activeItem={showMarkerInfoIndex} />
+                    <List list={places} activeItem={showMarkerInfoIndex} onImgClick={this.highlightMarker} />
                 </Sidebar>
 
                 {
                     places && places.map((item, key) => {
                         return <CustomMarker
+                            key={key}
                             onMarkerClick={this.onToggleOpen}
                             markerInfoIndex={showMarkerInfoIndex}
                             marker={item}
@@ -150,6 +156,11 @@ class MapContainer extends React.PureComponent {
                     })
                 }
 
+                {
+                    places && places.length === 0 &&
+                    <Marker position={{ lat: center.lat, lng: center.lng }} title="I am the center"
+                    />
+                }
             </GoogleMapsWrapper >
         )
     }
