@@ -1,16 +1,14 @@
 import React from "react"
 import axios from "axios";
-import { Marker, InfoWindow } from "react-google-maps";
+
 import { geocodeByAddress, getLatLng } from "react-places-autocomplete";
 
-import Link from '@material-ui/core/Link';
-
-import MuiDrawer from "./Drawer";
-import LocationSearchInput from "./LocationSearch";
+// Local components
 import GoogleMapsWrapper from './Map';
-import List from "./List";
-import pinIcon from "images/pin.png";
-import pinGreen from "images/pingreen.png";
+import Sidebar from "../Sidebar/Sidebar";
+import List from "../List/List";
+import LocationSearchInput from "../Search/LocationSearch";
+import CustomMarker from "../Marker/Marker";
 
 class MapContainer extends React.PureComponent {
     state = {
@@ -19,32 +17,6 @@ class MapContainer extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.fetchRestaurants();
-    }
-
-    fetchRestaurants = (title) => {
-
-        console.log(this.state.center, title);
-
-        axios.get(`${'https://cors-anywhere.herokuapp.com/'}https://api.yelp.com/v3/businesses/search?latitude=${this.state.center.lat}&longitude=${this.state.center.lng}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`
-                }
-            })
-            .then((res) => {
-                let restaurants = res.data.businesses;
-                console.log(restaurants);
-                this.setState({
-                    places: restaurants
-                })
-            })
-            .catch((err) => {
-                console.log('error')
-            })
-    }
-
-    componentWillUpdate() {
         this.fetchRestaurants();
     }
 
@@ -65,20 +37,41 @@ class MapContainer extends React.PureComponent {
             },
             onBoundsChanged: () => {
                 let bounds = refs.map.getBounds();
+                let center = refs.map.getCenter();
+
                 this.setState({
                     bounds: bounds,
-                    center: refs.map.getCenter()
+                    center: {
+                        lat: center.lat(),
+                        lng: center.lng()
+                    }
                 });
-                // this.fetchRestaurants();
             },
         });
+    }
+
+    fetchRestaurants = () => {
+        axios.get(`${'https://cors-anywhere.herokuapp.com/'}https://api.yelp.com/v3/businesses/search?latitude=${this.state.center.lat}&longitude=${this.state.center.lng}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.REACT_APP_API_KEY}`
+                }
+            })
+            .then((res) => {
+                let restaurants = res.data.businesses;
+                this.setState({
+                    places: restaurants
+                })
+            })
+            .catch((err) => {
+                console.log('error')
+            })
     }
 
     getGeoLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 position => {
-                    console.log("current position", position.coords);
                     this.setState(({
                         center: {
                             lat: position.coords.latitude,
@@ -122,6 +115,7 @@ class MapContainer extends React.PureComponent {
                 lng: e.latLng.lng()
             }
         });
+        this.fetchRestaurants();
     }
 
     render() {
@@ -139,37 +133,21 @@ class MapContainer extends React.PureComponent {
                 onMapMounted={onMapMounted}
                 onClick={this.onMapClick}
             >
-                <MuiDrawer>
+                <Sidebar>
                     <LocationSearchInput onLocationSelect={this.onLocationSelect} handleCurrentLocation={this.handleCurrentLocation} />
                     <List list={places} activeItem={showMarkerInfoIndex} />
-                </MuiDrawer>
+                </Sidebar>
 
                 {
-                    places && places.map((item, i) => {
-                        return (
-                            <Marker key={i}
-                                position={{ lat: item.coordinates.latitude, lng: item.coordinates.longitude }}
-                                onClick={() => this.onToggleOpen(i)}
-                                title="Click here for more details"
-                                icon={{ url: showMarkerInfoIndex !== i ? pinIcon : pinGreen, scaledSize: { width: 23, height: 32 }, }}
-                            >
-                                {showMarkerInfoIndex === i &&
-                                    <InfoWindow onCloseClick={this.onToggleOpen}>
-                                        <Link
-                                            target="_blank"
-                                            rel="noopener"
-                                            underline="none"
-                                            href={item.url}
-                                            color="primary"
-                                        >
-                                            {item.name}
-                                        </Link>
-                                    </InfoWindow>
-                                }
-                            </Marker>
-                        );
+                    places && places.map((item, key) => {
+                        return <CustomMarker
+                            onMarkerClick={this.onToggleOpen}
+                            markerInfoIndex={showMarkerInfoIndex}
+                            marker={item}
+                            key={key} />
                     })
                 }
+
             </GoogleMapsWrapper >
         )
     }

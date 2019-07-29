@@ -65,7 +65,7 @@ const useStyles = makeStyles(theme => ({
     },
 }));
 
-function MuiDrawer({ children }) {
+function Sidebar({ children }) {
     const classes = useStyles();
 
     const [open, setOpen] = React.useState(true);
@@ -98,5 +98,5 @@ function MuiDrawer({ children }) {
     )
 }
 
-export default MuiDrawer;
+export default Sidebar;
 

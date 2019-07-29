@@ -83,7 +83,7 @@ function MuiList({ list, activeItem }) {
                     href={item.url}
                     color="secondary"
                 >
-                    Yelp review
+                    Yelp Review Page
                             </Link>
             </div>
         )
